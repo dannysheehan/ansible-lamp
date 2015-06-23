@@ -1,0 +1,18 @@
+---
+
+- name: ensure instance exists in openstack
+  hosts: localhost
+  tasks:
+  - name: launch instance
+    nova_compute:
+      state: present
+      name: "{{ inventory_hostname }}"
+      image_id: "{{ os_image_id }}"
+      key_name: "{{ os_key_name }}"
+      flavor_id: "{{ flavor_id }}"
+      security_groups: "{{ security_groups }}"
+      region_name: "{{ ansible_env.OS_REGION_NAME }}"
+      login_username: "{{ ansible_env.OS_USERNAME }}"
+      login_password: "{{ ansible_env.OS_PASSWORD }}"
+      login_tenant_name: "{{ ansible_env.OS_TENANT_NAME }}"
+      auth_url: "{{ ansible_env.OS_AUTH_URL}}"

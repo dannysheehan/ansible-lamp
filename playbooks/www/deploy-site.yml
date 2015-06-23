@@ -1,0 +1,20 @@
+---
+- hosts: web
+  sudo: yes
+
+  tasks:
+    - name: check if site exists
+      stat: path=/var/www/html/{{ apache_vhosts[0].servername }}
+      register: check_path
+
+    - name: the site exists
+      debug: msg="site {{ apache_vhosts[0].servername }} already exists"
+      when: check_path.stat.exists
+
+    - name: copy the web application
+      unarchive: 
+        src:   /tmp/{{ apache_vhosts[0].servername }}.tgz 
+        dest:  /var/www/html
+        group: apache
+        owner: apache
+      when: check_path.stat.exists == false

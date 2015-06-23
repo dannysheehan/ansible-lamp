@@ -1,0 +1,39 @@
+---
+- hosts: database
+  sudo: yes
+
+  vars_files:
+    - vars.yml
+
+  #pre_tasks:
+  #  - name: Create dynamic MySQL variables.
+  #  set_fact:
+  #      # mysql_replication_master: "{{ groups['a4d.lamp.db.1'][0] }}"
+
+  roles:
+    - geerlingguy.firewall
+    - geerlingguy.mysql
+
+  post_tasks:
+    - name: Wait for mysql to start
+      wait_for: host={{ inventory_hostname }} port=3306 state=started timeout=80
+          
+    - name: Find first database
+      debug: msg="Database is {{ mysql_databases[0].name }}"
+
+    - name: Check if DB exists
+      shell: mysql -e 'SHOW DATABASES;' | grep {{ mysql_databases[0].name }}
+      register: dbstatus
+
+    - name: Create database
+      mysql_db: name={{ mysql_databases[0].name }} state=present
+      when: dbstatus|skipped
+
+    - name: Copy database dump to remote host and import
+      copy: src=/tmp/{{ mysql_databases[0].name }}.sql.bz2 dest=/tmp/dump.sql.bz2
+      when: dbstatus|skipped
+
+    - name: Import database dump
+      mysql_db: name={{ mysql_databases[0].name }} state=import target=/tmp/dump.sql.bz2
+      when: dbstatus|skipped
+

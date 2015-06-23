@@ -1,0 +1,4 @@
+---
+- include: playbooks/www/main.yml
+- include: playbooks/db/main.yml
+- include: playbooks/all/main.yml

@@ -1,0 +1,2 @@
+---
+- include: provisioners/openstack.yml
