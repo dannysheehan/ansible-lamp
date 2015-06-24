@@ -3,14 +3,30 @@
 - name: ensure instance exists in openstack
   hosts: localhost
   tasks:
-  - name: launch instance
+  - name: launch database1 instance
     nova_compute:
       state: present
-      name: "{{ inventory_hostname }}"
-      image_id: "{{ os_image_id }}"
+      name: database1
       key_name: "{{ os_key_name }}"
-      flavor_id: "{{ flavor_id }}"
-      security_groups: "{{ security_groups }}"
+      security_groups: "{{ os_security_groups }}"
+      image_id: "{{ os_image_id }}"
+      flavor_id: "{{ os_flavor_id }}"
+      availability_zone: "{{ os_availability_zone }}"
+      region_name: "{{ ansible_env.OS_REGION_NAME }}"
+      login_username: "{{ ansible_env.OS_USERNAME }}"
+      login_password: "{{ ansible_env.OS_PASSWORD }}"
+      login_tenant_name: "{{ ansible_env.OS_TENANT_NAME }}"
+      auth_url: "{{ ansible_env.OS_AUTH_URL}}"
+
+  - name: launch webserver1 instance
+    nova_compute:
+      state: present
+      name: webserver1
+      key_name: "{{ os_key_name }}"
+      security_groups: "{{ os_security_groups }}"
+      image_id: "{{ os_image_id }}"
+      flavor_id: "{{ os_flavor_id }}"
+      availability_zone: "{{ os_availability_zone }}"
       region_name: "{{ ansible_env.OS_REGION_NAME }}"
       login_username: "{{ ansible_env.OS_USERNAME }}"
       login_password: "{{ ansible_env.OS_PASSWORD }}"

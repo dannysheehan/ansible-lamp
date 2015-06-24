@@ -3,13 +3,44 @@
   sudo: yes
 
   tasks:
-    - name: "Build hosts file"
-      lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ hostvars[item].ansible_default_ipv4.address }} {{item}}" state=present
+    - name: Build hosts file
+      lineinfile: 
+        dest="/etc/hosts"
+        regexp='.*{{ item }}$' 
+        line="{{ hostvars[item].ansible_default_ipv4.address }} {{ item }}" 
+        state="present"
       when: hostvars[item].ansible_default_ipv4.address is defined
       with_items: groups['all']
 
-    - name: "install yum cron"
+    - name: install yumcron
       yum: name=yum-cron state=installed
 
-    - name: "Ensure yumjcron is running and enabled on boot."
+    - name: start yumcron
       service: name=yum-cron state=started enabled=yes
+
+    - name: Ensure admin email is set
+      lineinfile: 
+        dest=/etc/aliases
+        regexp='^root:' 
+        line="root{{':'}}  {{ server_admin }}"
+      notify: 
+        - new aliases
+        - restart postfix
+
+    - name: Ensure postfix domain is set
+      lineinfile: 
+        dest=/etc/postfix/main.cf 
+        line="{{ item.line }}"
+      with_items:
+        - { line: "mydomain = {{ server_domain }}" }
+        - { line: "myhostname = {{ server_domain }}" }
+      notify: 
+        - restart postfix
+
+
+  handlers:
+    - name: new aliases
+      command: newaliases
+    - name: restart postfix
+      service: name=postfix state=restarted
+        

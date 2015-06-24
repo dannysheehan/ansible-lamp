@@ -16,7 +16,7 @@
 
   post_tasks:
     - name: Wait for mysql to start
-      wait_for: host={{ inventory_hostname }} port=3306 state=started timeout=80
+      wait_for: host=127.0.0.1 port=3306 state=started timeout=80
           
     - name: Find first database
       debug: msg="Database is {{ mysql_databases[0].name }}"
