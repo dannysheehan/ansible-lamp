@@ -1,0 +1,16 @@
+---
+- hosts: db
+  sudo: yes
+
+  tasks:
+    - name:  Import database
+      debug: msg="Database is {{ mysql_databases[0].name }}"
+
+    - name: Copy database dump to remote host and import
+      copy: src=/tmp/{{ mysql_databases[0].name }}.sql.bz2 dest=/tmp/dump.sql.bz2
+      when: dbstatus|skipped
+
+    - name: Import database dump
+      mysql_db: name={{ mysql_databases[0].name }} state=import target=/tmp/dump.sql.bz2
+      when: dbstatus|skipped
+
