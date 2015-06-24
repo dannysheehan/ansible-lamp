@@ -2,30 +2,61 @@
 
 Provision and configure a LAMP site using ansible on Openstack
 
-Never login to a server again!!
+This assumes you have ansible setup on your devops workstation
 
 
-## Setup host_vars and group_vars
+### Setup host_vars and group_vars
 
+- this is an example of the types of things you can configure.
+- look at the playbooks and roles for more details.
+~~~
+ more group_vars/*
+::::::::::::::
+group_vars/database
+::::::::::::::
+---
 
-## Provision servers webserver1 and database1
+::::::::::::::
+group_vars/production
+::::::::::::::
+---
+server_admin: "admin@mail"
+server_domain: "company.org.au"
+
+mysql_users:
+  - name: drupaluser
+    host: "%"
+    password: mypassword
+    priv: "*.*:ALL"
+
+mysql_databases:
+  - name: mydatabase
+    collation: utf8_general_ci
+    encoding: utf8
+
+nova_compute:
+  - key_name: mycompany
+  - availability_zone: "melbourne"
+::::::::::::::
+group_vars/web
+::::::::::::::
+
+php_date_timezone: "Australia/Melbourne"
+
+apache_create_vhosts: true
+apache_vhosts_filename: "vhosts.conf"
+apache_vhosts:
+  - {
+    servername: ""
+    serveralias: ""
+...
+...
+~~~
+
+### Provision servers webserver1 and database1
 
 ~~~
 $ ansible-playbook -l localhost provision.yml
-
-PLAY [ensure instance exists in openstack] ************************************ 
-
-GATHERING FACTS *************************************************************** 
-ok: [localhost]
-
-TASK: [launch database1 instance] ********************************************* 
-changed: [localhost]
-
-TASK: [launch webserver1 instance] ******************************************** 
-changed: [localhost]
-
-PLAY RECAP ******************************************************************** 
-localhost                  : ok=3    changed=2    unreachable=0    failed=0   
 ~~~
 
 - get the ip's
@@ -58,7 +89,7 @@ ansible_ssh_private_key_file=~/.ssh/production.pem
 ansible_distribution_major_version="6"
 ~~~
 
-## Make sure you can ssh to them using ec2-user and your keys via ansible
+### Make sure you can ssh to them using ec2-user and your keys via ansible
 
 ~~~
 $ ansible webserver1 -i production -a "hostname"
@@ -76,87 +107,18 @@ database1
 - do one playbook at a time first time around.
 ~~~
 $ ansible-playbook -l web playbooks/www/main.yml 
-
-PLAY [web] ******************************************************************** 
-
-GATHERING FACTS *************************************************************** 
-ok: [webserver1]
-
-TASK: [geerlingguy.firewall | Ensure iptables is installed (RedHat).] ********* 
-ok: [webserver1]
-
-TASK: [geerlingguy.firewall | Ensure iptables is installed (Dcompanyan).] ********* 
-skipping: [webserver1]
-
-TASK: [geerlingguy.firewall | Flush iptables the first time playbook runs.] *** 
-ok: [webserver1]
-
-TASK: [geerlingguy.firewall | Copy firewall script into place.] *************** 
-ok: [webserver1]
-...
-...
-PLAY RECAP ******************************************************************** 
-webserver1                 : ok=43   changed=9    unreachable=0    failed=0   
 ~~~
-
 
 ~~~
 $ ansible-playbook -l database playbooks/db/main.yml 
-...
-...
 ~~~
 
-
 - this next step needs to run after the previous two.
-- amoungst other things it adds in */etc/host* entries for both servers 
+- among other things it adds in */etc/host* entries for both servers 
 
 
 ~~~
 $ ansible-playbook -l production playbooks/all/main.yml 
-
-PLAY [all] ******************************************************************** 
-
-GATHERING FACTS *************************************************************** 
-ok: [database1]
-ok: [webserver1]
-
-TASK: [Build hosts file] ****************************************************** 
-changed: [database1] => (item=webserver1)
-changed: [webserver1] => (item=webserver1)
-changed: [database1] => (item=database1)
-skipping: [database1] => (item=localhost)
-changed: [webserver1] => (item=database1)
-skipping: [webserver1] => (item=localhost)
-
-TASK: [install yumcron] ******************************************************* 
-changed: [database1]
-changed: [webserver1]
-
-TASK: [start yumcron] ********************************************************* 
-changed: [database1]
-changed: [webserver1]
-
-TASK: [Ensure admin email is set] ********************************************* 
-changed: [database1]
-changed: [webserver1]
-
-TASK: [Ensure postfix domain is set] ****************************************** 
-changed: [database1] => (item={'line': u'mydomain = mycompany.org.au'})
-changed: [webserver1] => (item={'line': u'mydomain = mycompany.org.au'})
-changed: [database1] => (item={'line': u'myhostname = mycompany.org.au'})
-changed: [webserver1] => (item={'line': u'myhostname = mycompany.org.au'})
-
-NOTIFIED: [new aliases] ******************************************************* 
-changed: [database1]
-changed: [webserver1]
-
-NOTIFIED: [restart postfix] *************************************************** 
-changed: [database1]
-changed: [webserver1]
-
-PLAY RECAP ******************************************************************** 
-database1                  : ok=8    changed=7    unreachable=0    failed=0   
-webserver1                 : ok=8    changed=7    unreachable=0    failed=0   
 ~~~
 
 - run the following to verify that /etc/hosts is updated on both servers
@@ -168,50 +130,13 @@ $ ansible production -a "cat /etc/hosts"
 
 ## Deploy your site assets
 
+- this deploys your */var/www/html* assets
 ~~~
 $ ansible-playbook -l production playbooks/www/deploy-site.yml 
-
-PLAY [web] ******************************************************************** 
-
-GATHERING FACTS *************************************************************** 
-ok: [webserver1]
-
-TASK: [check if site exists] ************************************************** 
-ok: [webserver1]
-
-TASK: [the site exists] ******************************************************* 
-skipping: [webserver1]
-
-TASK: [copy the web application] ********************************************** 
-changed: [webserver1]
-
-PLAY RECAP ******************************************************************** 
-webserver1                 : ok=3    changed=1    unreachable=0    failed=0   
-
 ~~~
 
 - similarly for your database you can import a mysql dump
-
 ~~~
 $ ansible-playbook -l production playbooks/db/deploy-site.yml 
-
-PLAY [database] *************************************************************** 
-
-GATHERING FACTS *************************************************************** 
-ok: [database1]
-
-TASK: [Import database] ******************************************************* 
-ok: [database1] => {
-    "msg": "Database is drupal_company"
-}
-
-TASK: [Copy database dump to remote host and import] ************************** 
-ok: [database1]
-
-TASK: [Import database dump] ************************************************** 
-changed: [database1]
-
-PLAY RECAP ******************************************************************** 
-database1                  : ok=4    changed=1    unreachable=0    failed=0   
 ~~~
 
