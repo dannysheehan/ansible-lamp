@@ -85,7 +85,7 @@ ok: [webserver1]
 TASK: [geerlingguy.firewall | Ensure iptables is installed (RedHat).] ********* 
 ok: [webserver1]
 
-TASK: [geerlingguy.firewall | Ensure iptables is installed (Debian).] ********* 
+TASK: [geerlingguy.firewall | Ensure iptables is installed (Dcompanyan).] ********* 
 skipping: [webserver1]
 
 TASK: [geerlingguy.firewall | Flush iptables the first time playbook runs.] *** 
@@ -100,9 +100,6 @@ webserver1                 : ok=43   changed=9    unreachable=0    failed=0
 ~~~
 
 
-- if you want to import your database make sure you hava a 
-*/tmp/{{ mysql_databases[0].name }}.sql.bz2* mysqldump file ready to import 
-- you can do this later and just re-run this playbook
 ~~~
 $ ansible-playbook -l database playbooks/db/main.yml 
 ...
@@ -191,5 +188,30 @@ changed: [webserver1]
 PLAY RECAP ******************************************************************** 
 webserver1                 : ok=3    changed=1    unreachable=0    failed=0   
 
+~~~
+
+- similarly for your database you can import a mysql dump
+
+~~~
+$ ansible-playbook -l production playbooks/db/deploy-site.yml 
+
+PLAY [database] *************************************************************** 
+
+GATHERING FACTS *************************************************************** 
+ok: [database1]
+
+TASK: [Import database] ******************************************************* 
+ok: [database1] => {
+    "msg": "Database is drupal_company"
+}
+
+TASK: [Copy database dump to remote host and import] ************************** 
+ok: [database1]
+
+TASK: [Import database dump] ************************************************** 
+changed: [database1]
+
+PLAY RECAP ******************************************************************** 
+database1                  : ok=4    changed=1    unreachable=0    failed=0   
 ~~~
 
