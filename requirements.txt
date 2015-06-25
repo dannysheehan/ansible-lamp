@@ -1,5 +1,5 @@
 geerlingguy.firewall
-eerlingguy.repo-epel
+geerlingguy.repo-epel
 geerlingguy.apache
 geerlingguy.php
 geerlingguy.php-mysql
