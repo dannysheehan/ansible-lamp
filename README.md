@@ -126,11 +126,6 @@ mysql_databases:
     collation: utf8_general_ci
     encoding: utf8
 
-nova_compute:
-  - key_name: mycompany
-  - availability_zone: "melbourne"
-
-
 ::::::::::::::
 group_vars/web
 ::::::::::::::
