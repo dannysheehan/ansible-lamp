@@ -12,7 +12,7 @@ see [How To Setup Desktop For Openstack/Ansible](HOWTO_ANSIBLE.md)
 - assumes you have setup a Python virtualenv. See previous Howto link.
 ~~~
 $ workon website
-$ git clone https://github.com/dannysheehan/ansible-lamp
+$ git clone https://github.com/dannysheehan/ansible-lamp .
 ~~~
 
 - source role requirements from Ansible Galaxy
