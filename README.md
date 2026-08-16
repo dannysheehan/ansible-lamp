@@ -1,3 +1,13 @@
+> **Archived.** These playbooks are from June 2015. They provision a two-node LAMP site (Apache/PHP web + MySQL) on OpenStack with Ansible Galaxy roles, then deploy `/var/www/html` and a SQL dump.
+>
+> That is not a good 2026 setup:
+> - Ansible 1.x style: `include:` playbooks, `hostfile` in `ansible.cfg`, `ansible_ssh_host` / `ansible_ssh_user`. Current Ansible uses collections, `ansible_host`, and an inventory plugin.
+> - Instances are created with the removed `nova_compute` module and Keystone v2 (`OS_TENANT_NAME`). Use the [openstack.cloud](https://docs.ansible.com/ansible/latest/collections/openstack/cloud/index.html) collection and the `openstack` CLI.
+> - Inventory pins `ansible_distribution_major_version="6"` (RHEL/CentOS 6, `ec2-user`). EL6 has been EOL since 2020.
+> - Galaxy roles (`geerlingguy.apache`, `.mysql`, `.php`) still exist and are the right idea; this checkout of them is not.
+>
+> Left here as a historical example of nova + Galaxy LAMP on OpenStack. Original setup notes follow.
+
 # ansible-lamp
 
 Provision and configure a LAMP site using ansible on Openstack
